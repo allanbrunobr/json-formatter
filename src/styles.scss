@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+// src/styles.scss
+@import "@angular/material/prebuilt-themes/pink-bluegrey.css";  // tema escuro pré-construído
+
+// Personalizações adicionais
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #1e1e1e !important;
+  --mdc-dialog-with-divider-divider-color: #333333 !important;
+  --mdc-dialog-subhead-color: #ffffff !important;
+  color: #d4d4d4 !important;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

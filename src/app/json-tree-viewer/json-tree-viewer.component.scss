@@ -1,0 +1,365 @@
+// json-tree-viewer.component.scss
+.json-viewer-container {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #252526;
+  border-bottom: 1px solid #404040;
+}
+
+.status-bar {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-weight: bold;
+
+  &.valid {
+    background: #28a745;
+    color: white;
+  }
+}
+
+.tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tool-button {
+  padding: 4px 8px;
+  background: #333333;
+  border: 1px solid #404040;
+  color: #d4d4d4;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &:hover {
+    background: #404040;
+  }
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  padding: 4px 8px;
+  background: #333333;
+  border: 1px solid #404040;
+  color: #d4d4d4;
+  border-radius: 3px;
+  width: 200px;
+
+  // json-tree-viewer.component.scss (continuação)
+  &::placeholder {
+    color: #808080;
+  }
+}
+
+.search-results {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #808080;
+
+  button {
+    padding: 2px 6px;
+    background: #333333;
+    border: 1px solid #404040;
+    color: #d4d4d4;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background: #404040;
+    }
+  }
+}
+.tree-node {
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+
+  &.highlighted {
+    background: rgba(97, 175, 239, 0.1);
+    outline: 1px solid rgba(97, 175, 239, 0.2);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.expand-button {
+  cursor: pointer;
+  color: #808080;
+  margin-right: 4px;
+  user-select: none;
+  width: 16px;
+  display: inline-block;
+  text-align: center;
+
+  &:hover {
+    color: #d4d4d4;
+  }
+}
+
+.key {
+  color: #9cdcfe;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.matched {
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 2px;
+    padding: 0 2px;
+    margin: 0 -2px;
+  }
+}
+
+.value {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.matched {
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 2px;
+    padding: 0 2px;
+    margin: 0 -2px;
+  }
+
+  &.string { color: #ce9178; }
+  &.number { color: #b5cea8; }
+  &.boolean { color: #569cd6; }
+  &.null { color: #569cd6; }
+  &.object, &.array { color: #d4d4d4; }
+}
+
+.colon {
+  margin: 0 4px;
+  color: #d4d4d4;
+}
+
+.comma {
+  margin-left: 4px;
+  color: #d4d4d4;
+}
+
+// Estilização da barra de rolagem
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 5px;
+
+  &:hover {
+    background: #4a4a4a;
+  }
+}
+
+// Animações
+@keyframes highlight {
+  0% { background-color: rgba(97, 175, 239, 0); }
+  50% { background-color: rgba(97, 175, 239, 0.2); }
+  100% { background-color: rgba(97, 175, 239, 0.1); }
+}
+
+.highlighted {
+  animation: highlight 1s ease;
+}
+
+// Tooltip personalizado
+[title] {
+  position: relative;
+
+  &:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #333333;
+    color: #d4d4d4;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    margin-bottom: 4px;
+    border: 1px solid #404040;
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 8px;
+
+    .tools {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .search-box {
+      width: 100%;
+
+      .search-input {
+        flex: 1;
+      }
+    }
+  }
+
+  .tool-button {
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+// Adicione ao json-tree-viewer.component.scss
+.action-button {
+  &.edit {
+    font-size: 12px;
+    padding: 2px 6px;
+
+    &:hover {
+      background: rgba(97, 175, 239, 0.1);
+    }
+  }
+}
+
+// Estilo para highlight durante edição
+.node-content.editing {
+  background: rgba(97, 175, 239, 0.05);
+  outline: 1px solid rgba(97, 175, 239, 0.2);
+}
+
+.node-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  .tree-node:hover & {
+    opacity: 1;
+  }
+}
+
+.action-button {
+  &.small {
+    padding: 2px 6px;
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid #404040;
+    color: #d4d4d4;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:hover {
+      background: #404040;
+    }
+  }
+
+  // json-tree-viewer.component.scss
+
+  // ... mantenha os estilos existentes ...
+
+  .main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden; // Evita scroll duplo
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .editor-section {
+    flex: 1;
+    overflow: auto;
+    background: #1e1e1e;
+    border-radius: 4px;
+    border: 1px solid #404040;
+  }
+
+  .preview-section {
+    width: 400px; // Largura fixa para o preview
+    overflow: auto;
+    background: #1e1e1e;
+    border-radius: 4px;
+    border: 1px solid #404040;
+    padding: 16px;
+
+    h3 {
+      margin: 0 0 16px 0;
+      color: #d4d4d4;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      color: #d4d4d4;
+    }
+  }
+
+  // Torne a largura do preview responsiva
+  @media (max-width: 1200px) {
+    .preview-section {
+      width: 300px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .main-content {
+      flex-direction: column;
+    }
+
+    .preview-section {
+      width: 100%;
+      height: 300px; // Altura fixa quando estiver em modo mobile
+    }
+  }
+
+  // Ajuste o json-content para o novo layout
+  .json-content {
+    padding: 16px;
+    min-width: min-content; // Garante que o conteúdo não quebre
+  }
+}
