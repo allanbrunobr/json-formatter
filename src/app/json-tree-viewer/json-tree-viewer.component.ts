@@ -359,4 +359,56 @@ export class JsonTreeViewerComponent implements OnInit {
       console.error('JSON inválido:', error);
     }
   }
+
+  copyToClipboard(value: string) {
+    navigator.clipboard.writeText(value).then(
+      () => {
+        // Opcional: Você pode adicionar algum feedback visual aqui
+        console.log('Valor copiado com sucesso:', value);
+      },
+      (err) => {
+        console.error('Erro ao copiar valor:', err);
+      }
+    );
+  }
+  /**
+   * Retorna o tamanho do objeto ou array
+   */
+  getCollectionSize(value: any): number {
+    if (Array.isArray(value)) {
+      return value.length;
+    }
+    if (this.isObject(value)) {
+      return Object.keys(value).length;
+    }
+    return 0;
+  }
+
+  /**
+   * Retorna a descrição do tipo com o tamanho
+   */
+  getTypeDescription(value: any): string {
+    if (Array.isArray(value)) {
+      return `Array[${value.length}]`;
+    }
+    if (this.isObject(value)) {
+      return `Object{${Object.keys(value).length}}`;
+    }
+    return '';
+  }
+
+  getNodeAttributes(node: JsonNodeMetadata) {
+    const isArray = Array.isArray(node.value);
+    const isObject = this.isObject(node.value);
+
+    return {
+      'data-level': node.level,
+      'data-array': isArray,
+      'data-object': isObject,
+      'data-bracket-open': isArray ? '[' : '{',
+      'data-bracket-close': isArray ? ']' : '}',
+      'class': this.isExpanded(this.getNodePath(node)) ? 'expanded' : ''
+    };
+  }
+
 }

@@ -45,11 +45,30 @@
           <div
             class="tree-node"
             [attr.data-level]="node.level"
-            [style.marginLeft.px]="node.level * 20"
+            [attr.data-array]="Array.isArray(node.value)"
+            [style.margin-left.px]="node.level * 20"
+            [attr.data-object]="isObject(node.value)"
+            [attr.data-bracket-open]="Array.isArray(node.value) ? '[' : '{'"
+            [attr.data-bracket-close]="Array.isArray(node.value) ? ']' : '}'"
+            [class.expanded]="isExpanded(getNodePath(node))"
             [class.highlighted]="isNodeHighlighted(node)"
             [attr.data-path]="getNodePath(node)"
           >
             <div class="node-content">
+               <span
+                 class="key"
+                 *ngIf="node.key !== undefined"
+                 [class.matched]="isKeyMatched(node)"
+                 (click)="copyToClipboard(node.key.toString())"
+                 [attr.title]="'Clique para copiar: ' + node.key"
+               >
+            "{{ node.key }}"
+              </span>
+
+              <span class="colon" *ngIf="node.key !== undefined">: </span>
+
+              <div class="expandable-value-container">
+
               <span
                 *ngIf="isExpandable(node.value)"
                 class="expand-button"
@@ -59,8 +78,15 @@
                 {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
               </span>
 
-              <span class="colon" *ngIf="node.key !== undefined">: </span>
-
+                <span
+                  [class]="'value ' + getValueType(node.value)"
+                  [class.matched]="isValueMatched(node)"
+                  (click)="copyToClipboard(formatValue(node.value))"
+                  [attr.title]="'Clique para copiar: ' + formatValue(node.value)"
+                >
+                    {{ formatValue(node.value) }}
+                </span>
+              </div>
               <span *ngIf="!node.isLast" class="comma">,</span>
 
               <div class="node-actions">
@@ -123,14 +149,11 @@
             </div>
 
             <!-- Indicador de tipo e tamanho (opcional) -->
-<!--            <div class="type-indicator" *ngIf="isExpandable(node.value)">-->
-<!--              <span class="type-badge">-->
-<!--                {{ Array.isArray(node.value) ?-->
-<!--                'Array[' + node.value.length + ']' :-->
-<!--                'Object{' + Object.keys(node.value).length + '}'-->
-<!--                }}-->
-<!--              </span>-->
-<!--            </div>-->
+            <div class="type-indicator" *ngIf="isExpandable(node.value)">
+  <span class="type-badge">
+    {{ getTypeDescription(node.value) }}
+  </span>
+            </div>
           </div>
         </ng-container>
       </div>
