@@ -1,12 +1,7 @@
-// json-tree-viewer.component.scss
+
+/* json-tree-viewer.component.scss */
 .json-viewer-container {
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 14px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: #1e1e1e;
-  color: #d4d4d4;
+  position: relative;
 }
 
 .toolbar {
@@ -62,7 +57,6 @@
   border-radius: 3px;
   width: 200px;
 
-  // json-tree-viewer.component.scss (continuação)
   &::placeholder {
     color: #808080;
   }
@@ -92,19 +86,46 @@
     }
   }
 }
+
 .tree-node {
   padding: 2px 0;
   display: flex;
-  align-items: center;
-  transition: background-color 0.2s ease;
+  align-items: flex-start;
+  flex-wrap: nowrap;
 
-  &.highlighted {
-    background: rgba(97, 175, 239, 0.1);
-    outline: 1px solid rgba(97, 175, 239, 0.2);
+  .node-content {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    width: 100%;
   }
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.02);
+  .expand-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    margin-right: 4px;
+  }
+
+  .type-indicator {
+    margin-left: 4px;
+    color: #666;
+    font-size: 0.9em;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .key, .value, .colon {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+
+  &[data-level="0"] {
+    margin-left: 0;
   }
 }
 
@@ -169,7 +190,6 @@
   color: #d4d4d4;
 }
 
-// Estilização da barra de rolagem
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -188,7 +208,6 @@
   }
 }
 
-// Animações
 @keyframes highlight {
   0% { background-color: rgba(97, 175, 239, 0); }
   50% { background-color: rgba(97, 175, 239, 0.2); }
@@ -199,7 +218,6 @@
   animation: highlight 1s ease;
 }
 
-// Tooltip personalizado
 [title] {
   position: relative;
 
@@ -222,7 +240,6 @@
   }
 }
 
-// Responsividade
 @media (max-width: 768px) {
   .toolbar {
     flex-direction: column;
@@ -249,117 +266,161 @@
   }
 }
 
-// Adicione ao json-tree-viewer.component.scss
-.action-button {
-  &.edit {
-    font-size: 12px;
-    padding: 2px 6px;
+.action-button.small {
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 
-    &:hover {
-      background: rgba(97, 175, 239, 0.1);
-    }
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
   }
 }
 
-// Estilo para highlight durante edição
-.node-content.editing {
-  background: rgba(97, 175, 239, 0.05);
-  outline: 1px solid rgba(97, 175, 239, 0.2);
+// Específico para o botão de adicionar
+.action-button.small[matMenuTriggerFor] {
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .node-actions {
   margin-left: auto;
-  display: flex;
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
 
-  .tree-node:hover & {
-    opacity: 1;
+  button {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 
-.action-button {
-  &.small {
-    padding: 2px 6px;
-    font-size: 12px;
-    background: transparent;
-    border: 1px solid #404040;
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 16px;
+  padding: 16px;
+}
+
+.editor-section {
+  flex: 1;
+  overflow: auto;
+  background: #1e1e1e;
+  border-radius: 4px;
+  border: 1px solid #404040;
+}
+
+.preview-section {
+  width: 400px;
+  overflow: auto;
+  background: #1e1e1e;
+  border-radius: 4px;
+  border: 1px solid #404040;
+  padding: 16px;
+
+  h3 {
+    margin: 0 0 16px 0;
     color: #d4d4d4;
-    border-radius: 3px;
-    cursor: pointer;
-
-    &:hover {
-      background: #404040;
-    }
+    font-size: 14px;
+    font-weight: 500;
   }
 
-  // json-tree-viewer.component.scss
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    color: #d4d4d4;
+  }
+}
 
-  // ... mantenha os estilos existentes ...
+@media (max-width: 1200px) {
+  .preview-section {
+    width: 300px;
+  }
+}
 
+@media (max-width: 768px) {
   .main-content {
-    display: flex;
-    flex: 1;
-    overflow: hidden; // Evita scroll duplo
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .editor-section {
-    flex: 1;
-    overflow: auto;
-    background: #1e1e1e;
-    border-radius: 4px;
-    border: 1px solid #404040;
+    flex-direction: column;
   }
 
   .preview-section {
-    width: 400px; // Largura fixa para o preview
-    overflow: auto;
-    background: #1e1e1e;
-    border-radius: 4px;
-    border: 1px solid #404040;
-    padding: 16px;
+    width: 100%;
+    height: 300px;
+  }
+}
 
-    h3 {
-      margin: 0 0 16px 0;
-      color: #d4d4d4;
-      font-size: 14px;
-      font-weight: 500;
+.json-content {
+  min-width: min-content;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.mat-menu-item {
+  font-size: 14px;
+
+  .mat-icon {
+    margin-right: 8px;
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+.mat-icon-button.action-button.small {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+  }
+}
+
+::ng-deep .mat-menu-panel {
+  background: #1e1e1e;
+
+  .mat-menu-item {
+    color: #d4d4d4;
+    font-size: 14px;
+    height: 36px;
+    line-height: 36px;
+
+    .mat-icon {
+      color: #808080;
+      margin-right: 8px;
     }
 
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 14px;
-      color: #d4d4d4;
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+
+      .mat-icon {
+        color: #d4d4d4;
+      }
     }
   }
+}
 
-  // Torne a largura do preview responsiva
-  @media (max-width: 1200px) {
-    .preview-section {
-      width: 300px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .main-content {
-      flex-direction: column;
-    }
-
-    .preview-section {
-      width: 100%;
-      height: 300px; // Altura fixa quando estiver em modo mobile
-    }
-  }
-
-  // Ajuste o json-content para o novo layout
-  .json-content {
-    padding: 16px;
-    min-width: min-content; // Garante que o conteúdo não quebre
-  }
+.node-content.editing {
+  background: rgba(97, 175, 239, 0.05);
+  outline: 1px solid rgba(97, 175, 239, 0.2);
 }

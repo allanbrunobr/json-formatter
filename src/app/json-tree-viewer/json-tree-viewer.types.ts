@@ -11,14 +11,31 @@ export interface JsonNodeMetadata {
   isLast: boolean;
   parent: any;
   key: string | number;
-  value: any;
+  value: JsonValue;
 }
 
-export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'object' | 'array';
+// Tipos JSON básicos
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonArray = JsonValue[];
+export type JsonObject = { [key: string]: JsonValue };
+export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
-// Adicione a interface do diálogo
+// Interface para objetos dinâmicos
+export interface DynamicObject {
+  [key: string]: any;
+}
+
+// Interface para objetos template
+export interface TemplateObject extends DynamicObject {
+  [key: string]: string | number | boolean | null | DynamicObject | any[];
+}
+
+// Interface para dados do diálogo de edição
 export interface EditDialogData {
   template: any;
   path: string[];
   isNew: boolean;
 }
+
+// Tipo para valores JSON
+export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'object' | 'array';

@@ -1,6 +1,6 @@
 // json-tree-viewer.service.ts
 import { Injectable } from '@angular/core';
-import { SearchMatch, JsonNodeMetadata, JsonValueType } from './json-tree-viewer.types';
+import {SearchMatch, JsonNodeMetadata, JsonValueType, DynamicObject} from './json-tree-viewer.types';
 import { MatDialog } from '@angular/material/dialog';
 import { JsonEditDialogComponent } from './json-edit-dialog.component';
 import {AddNodeDialogComponent} from './add-node-dialog.component';
@@ -143,25 +143,6 @@ export class JsonTreeViewerService {
     return paths;
   }
 
-  async addSimilarItem(data: any, path: string[]): Promise<any> {
-    const parent = this.getParentFromPath(data, path);
-    const template = this.getValueFromPath(data, path);
-
-    if (!template) return null;
-
-    const result = await this.openEditDialog(template, path, true);
-    if (result) {
-      if (Array.isArray(parent)) {
-        parent.push(result);
-      } else if (typeof parent === 'object' && parent !== null) {
-        const key = this.generateUniqueKey(parent, path[path.length - 1]);
-        parent[key] = result;
-      }
-      return result;
-    }
-    return null;
-  }
-
   async editItem(data: any, path: string[]): Promise<any> {
     const current = this.getValueFromPath(data, path);
     if (!current) return null;
@@ -218,7 +199,7 @@ export class JsonTreeViewerService {
 
     const result = await dialogRef.afterClosed().toPromise();
     if (result) {
-      if (isArray) {
+      if (Array.isArray(parent)) {
         parent.push(result.value);
       } else {
         parent[result.key] = result.value;
@@ -234,7 +215,7 @@ export class JsonTreeViewerService {
       : data;
   }
 
-  private generateUniqueKey(obj: any, baseKey: string): string {
+  private generateUniqueKey(obj: DynamicObject, baseKey: string): string {
     let key = baseKey;
     let counter = 1;
     while (obj[key] !== undefined) {
@@ -244,9 +225,9 @@ export class JsonTreeViewerService {
     return key;
   }
 
-  getValueFromPath(data: any, path: string[]): any {
+  getValueFromPath(data: DynamicObject, path: string[]): any {
     try {
-      return path.reduce((obj, key) => {
+      return path.reduce((obj: any, key: string) => {
         if (obj === undefined || obj === null) {
           throw new Error('Invalid path');
         }
@@ -265,7 +246,7 @@ export class JsonTreeViewerService {
     }
   }
 
-  setValueAtPath(data: any, path: string[], value: any): boolean {
+  setValueAtPath(data: DynamicObject, path: string[], value: any): boolean {
     try {
       const parentPath = path.slice(0, -1);
       const lastKey = path[path.length - 1];
@@ -352,4 +333,66 @@ export class JsonTreeViewerService {
       return false;
     }
   }
+
+  async addSimilarItem(data: DynamicObject, path: string[], empty: boolean = true, copyValue: any = null): Promise<any> {
+    const parent = this.getParentFromPath(data, path);
+    const template = empty ? this.getEmptyTemplate(this.getValueFromPath(data, path)) : copyValue;
+
+    const result = await this.openEditDialog(template, path, true);
+    if (result) {
+      if (Array.isArray(parent)) {
+        parent.push(result);
+      } else if (typeof parent === 'object' && parent !== null) {
+        const key = this.generateUniqueKey(parent, path[path.length - 1]);
+        parent[key] = result;
+      }
+      return result;
+    }
+    return null;
+  }
+
+  async addKeyValuePair(data: any, path: string[]): Promise<any> {
+    const targetObj: DynamicObject = this.getValueFromPath(data, path);
+
+    const dialogRef = this.dialog.open(AddNodeDialogComponent, {
+      width: '500px',
+      data: {
+        path,
+        parentType: 'object',
+        mode: 'keyValue'
+      }
+    });
+
+    const result = await dialogRef.afterClosed().toPromise();
+    if (result) {
+      targetObj[result.key] = result.value;
+      return result;
+    }
+    return null;
+  }
+
+  private getEmptyTemplate(obj: any): DynamicObject | any[] | null {
+    if (Array.isArray(obj)) {
+      return [];
+    }
+    if (typeof obj === 'object' && obj !== null) {
+      const template: DynamicObject = {};
+      Object.keys(obj).forEach(key => {
+        template[key] = this.getDefaultValue(typeof obj[key]);
+      });
+      return template;
+    }
+    return null;
+  }
+
+  private getDefaultValue(type: string): any {
+    switch (type) {
+      case 'string': return '';
+      case 'number': return 0;
+      case 'boolean': return false;
+      case 'object': return {};
+      default: return null;
+    }
+  }
+
 }

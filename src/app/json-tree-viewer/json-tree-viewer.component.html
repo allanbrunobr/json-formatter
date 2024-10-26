@@ -1,6 +1,5 @@
 <!-- json-tree-viewer.component.html -->
 <div class="json-viewer-container">
-  <!-- Barra de status e ferramentas -->
   <div class="toolbar">
     <div class="status-bar" [class.valid]="isValid">
       {{ isValid ? 'VALID (RFC 8259)' : 'INVALID JSON' }}
@@ -39,100 +38,108 @@
     </div>
   </div>
 
-
   <div class="main-content">
-    <!-- Visualizador do JSON (lado esquerdo) -->
     <div class="editor-section">
-  <!-- Visualizador do JSON -->
-  <div class="json-content">
-    <ng-container *ngFor="let node of renderNodes">
-      <div
-        class="tree-node"
-        [style.marginLeft.px]="node.level * 20"
-        [class.highlighted]="isNodeHighlighted(node)"
-        [attr.data-path]="getNodePath(node)"
-      >
-        <div class="node-content">
-          <!-- Botão de expandir/colapsar -->
-          <span
-            *ngIf="isExpandable(node.value)"
-            class="expand-button"
-            (click)="toggleNode(getNodePath(node))"
-            [attr.title]="isExpanded(getNodePath(node)) ? 'Colapsar' : 'Expandir'"
+      <div class="json-content">
+        <ng-container *ngFor="let node of renderNodes">
+          <div
+            class="tree-node"
+            [attr.data-level]="node.level"
+            [style.marginLeft.px]="node.level * 20"
+            [class.highlighted]="isNodeHighlighted(node)"
+            [attr.data-path]="getNodePath(node)"
           >
-            {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
-          </span>
+            <div class="node-content">
+              <span
+                *ngIf="isExpandable(node.value)"
+                class="expand-button"
+                (click)="toggleNode(getNodePath(node))"
+                [attr.title]="isExpanded(getNodePath(node)) ? 'Colapsar' : 'Expandir'"
+              >
+                {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
+              </span>
 
-          <!-- Chave -->
-          <span
-            class="key"
-            *ngIf="node.key !== undefined"
-            [class.matched]="isKeyMatched(node)"
-            (click)="copyToClipboard(node.key.toString())"
-            [attr.title]="'Clique para copiar: ' + node.key"
-          >
-            "{{ node.key }}"
-          </span>
+              <span class="colon" *ngIf="node.key !== undefined">: </span>
 
-          <span class="colon" *ngIf="node.key !== undefined">: </span>
+              <span *ngIf="!node.isLast" class="comma">,</span>
 
-          <!-- Valor -->
-          <span
-            [class]="'value ' + getValueType(node.value)"
-            [class.matched]="isValueMatched(node)"
-            (click)="copyToClipboard(formatValue(node.value))"
-            [attr.title]="'Clique para copiar: ' + formatValue(node.value)"
-          >
-            {{ formatValue(node.value) }}
-          </span>
+              <div class="node-actions">
+                <button
+                  class="action-button small"
+                  [matMenuTriggerFor]="addMenu"
+                  title="Adicionar"
+                >
+                  +
+                </button>
+                <mat-menu #addMenu="matMenu">
+                  <ng-container *ngIf="Array.isArray(node.value)">
+                    <button mat-menu-item (click)="addArrayItem(node, 'primitive')">
+                      <mat-icon>add_circle_outline</mat-icon>
+                      <span>Adicionar valor primitivo</span>
+                    </button>
+                    <button mat-menu-item (click)="addArrayItem(node, 'object')">
+                      <mat-icon>add_box</mat-icon>
+                      <span>Adicionar objeto</span>
+                    </button>
+                    <button mat-menu-item (click)="addArrayItem(node, 'array')">
+                      <mat-icon>list</mat-icon>
+                      <span>Adicionar array</span>
+                    </button>
+                    <button mat-menu-item (click)="addCopySimilarItem(node)">
+                      <mat-icon>content_copy</mat-icon>
+                      <span>Duplicar elemento</span>
+                    </button>
+                  </ng-container>
 
-          <span *ngIf="!node.isLast" class="comma">,</span>
+                  <ng-container *ngIf="isObject(node.value)">
+                    <button mat-menu-item (click)="addKeyValuePair(node)">
+                      <mat-icon>add_box</mat-icon>
+                      <span>Adicionar par chave:valor</span>
+                    </button>
+                    <button mat-menu-item (click)="addCopySimilarItem(node)">
+                      <mat-icon>content_copy</mat-icon>
+                      <span>Duplicar objeto</span>
+                    </button>
+                  </ng-container>
+                </mat-menu>
 
-          <!-- Botões de ação -->
-          <div class="node-actions">
-            <button
-              *ngIf="isExpandable(node.value)"
-              class="action-button small"
-              (click)="addSimilarItem(node)"
-              title="Adicionar item similar"
-            >
-              +
-            </button>
-            <button
-              class="action-button small"
-              (click)="editNode(node)"
-              title="Editar"
-            >
-              ✎
-            </button>
-            <button
-              class="action-button small"
-              (click)="deleteNode(node)"
-              title="Deletar"
-            >
-              🗑
-            </button>
+                <button
+                  class="action-button small"
+                  (click)="editNode(node)"
+                  [disabled]="!canEditNode(node)"
+                  title="Editar"
+                >
+                  ✎
+                </button>
+                <button
+                  class="action-button small"
+                  (click)="deleteNode(node)"
+                  [disabled]="!canDeleteNode(node)"
+                  title="Deletar"
+                >
+                  🗑
+                </button>
+              </div>
+            </div>
+
+            <!-- Indicador de tipo e tamanho (opcional) -->
+<!--            <div class="type-indicator" *ngIf="isExpandable(node.value)">-->
+<!--              <span class="type-badge">-->
+<!--                {{ Array.isArray(node.value) ?-->
+<!--                'Array[' + node.value.length + ']' :-->
+<!--                'Object{' + Object.keys(node.value).length + '}'-->
+<!--                }}-->
+<!--              </span>-->
+<!--            </div>-->
           </div>
-        </div>
-
-        <!-- Indicador de tipo e tamanho (opcional) -->
-        <div class="type-indicator" *ngIf="isExpandable(node.value)">
-          <span class="type-badge">
-            {{ Array.isArray(node.value) ?
-            'Array[' + node.value.length + ']' :
-            'Object{' + Object.keys(node.value).length + '}'
-            }}
-          </span>
-        </div>
+        </ng-container>
       </div>
-    </ng-container>
-  </div>
     </div>
 
-  <!-- Preview do JSON -->
-  <div class="preview-section">
-    <h3>Preview do JSON</h3>
-    <pre>{{ jsonData | json }}</pre>
+    <!-- Preview do JSON -->
+    <div class="preview-section">
+      <h3>Preview do JSON</h3>
+      <pre>{{ jsonData | json }}</pre>
+    </div>
   </div>
-</div>
 </div>

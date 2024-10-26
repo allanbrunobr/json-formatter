@@ -14,3 +14,23 @@ html, body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+.mat-mdc-menu-panel {
+  background: #1e1e1e !important;
+
+  .mat-mdc-menu-item {
+    color: #d4d4d4 !important;
+
+    .mat-icon {
+      color: #808080 !important;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+
+      .mat-icon {
+        color: #d4d4d4 !important;
+      }
+    }
+  }
+}
