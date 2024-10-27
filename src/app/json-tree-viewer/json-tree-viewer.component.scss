@@ -1,16 +1,17 @@
-/* json-tree-viewer.component.scss */
-
 // Variáveis
-$bg-color: #ffffff;          // Fundo branco
-$dark-bg-lighter: #f8f9fa;   // Barra de ferramentas
-$border-color: #e0e0e0;      // Bordas mais suaves
-$text-color: #333333;        // Texto mais escuro
-$text-muted: #666666;        // Texto secundário
-$key-color: #986801;         // Marrom para chaves
-$value-string-color: #333333; // Strings em cinza escuro
-$bracket-color: #333333;      // Colchetes em cinza escuro
-$success-color: #28a745;     // Mantém a cor de sucesso
+$bg-color: #ffffff;
+$dark-bg-lighter: #f8f9fa;
+$border-color: #e0e0e0;
+$text-color: #333333;
+$text-muted: #666666;
+$key-color: #986801;
+$bracket-color: #333333;
+$success-color: #28a745;
 $highlight-color: rgba(97, 175, 239, 0.2);
+$value-number-color: #8c8c8c;
+$value-boolean-color: #8c8c8c;
+$value-null-color: #8c8c8c;
+$value-string-color: #333333;
 
 // Container Principal
 .json-viewer-container {
@@ -18,13 +19,12 @@ $highlight-color: rgba(97, 175, 239, 0.2);
   background-color: $bg-color;
 }
 
-.node-structure {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
 // Toolbar
 .toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
   background: $dark-bg-lighter;
   border-bottom: 1px solid $border-color;
 }
@@ -48,9 +48,12 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 
 // Botões
 .tool-button {
+  padding: 4px 8px;
   background: $bg-color;
   border: 1px solid $border-color;
   color: $text-color;
+  border-radius: 3px;
+  cursor: pointer;
 
   &:hover {
     background: darken($bg-color, 5%);
@@ -65,9 +68,12 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 }
 
 .search-input {
+  padding: 4px 8px;
   background: $bg-color;
   border: 1px solid $border-color;
   color: $text-color;
+  border-radius: 3px;
+  width: 200px;
 
   &::placeholder {
     color: $text-muted;
@@ -101,55 +107,10 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 
 // Estrutura da Árvore JSON
 .tree-node {
-  padding: 2px 0;
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: nowrap;
   position: relative;
+  min-height: 24px;
+  font-family: 'Consolas', 'Monaco', monospace;
 
-  .node-content {
-    display: inline-flex;
-    align-items: center;
-    min-height: 20px;
-    width: 100%;
-    padding: 1px 0;
-  }
-
-  .expandable-value-container {
-    display: flex;
-    align-items: flex-start;
-    position: relative;
-    min-height: 24px;
-  }
-
-  &[data-array="true"],
-  &[data-object="true"] {
-    &::before {
-      content: attr(data-bracket-open);
-      position: absolute;
-      left: -10px;
-      color: $bracket-color; // Adicionando a cor
-    }
-
-    &::after {
-      content: attr(data-bracket-close);
-      position: absolute;
-      left: -10px;
-      bottom: 0;
-      color: $bracket-color; // Adicionando a cor
-    }
-
-    &.expanded {
-      &::before {
-        content: "[";
-        color: $bracket-color; // Adicionando a cor
-      }
-      &::after {
-        content: "]";
-        color: $bracket-color; // Adicionando a cor
-      }
-    }
-  }
   &:hover {
     .node-actions {
       opacity: 1;
@@ -157,29 +118,43 @@ $highlight-color: rgba(97, 175, 239, 0.2);
   }
 }
 
+.node-content {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  gap: 4px;
+}
+
+// Botão expandir/colapsar
+.expand-container {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 4px;
+}
+
 .expand-button {
-  position: absolute;
-  left: -15px;
-  top: 2px;
-  cursor: pointer;
-  user-select: none;
+  background: #333;
+  color: #fff;
   width: 16px;
   height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $bracket-color; // Adicionando a cor
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 2px;
+  font-size: 12px;
 
   &:hover {
-    color: lighten($bracket-color, 15%);
+    background: #444;
   }
 }
 
+// Elementos do JSON
 .key {
   color: $key-color;
   cursor: pointer;
-  margin-right: 4px;
-  font-family: 'Consolas', 'Monaco', monospace;
 
   &:hover {
     text-decoration: underline;
@@ -188,23 +163,30 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 
 .value {
   cursor: pointer;
-  font-family: 'Consolas', 'Monaco', monospace;
+
+  &.string { color: $value-string-color; }
+  &.number { color: $value-number-color; }
+  &.boolean { color: $value-boolean-color; }
+  &.null { color: $value-null-color; }
 
   &:hover {
     text-decoration: underline;
   }
-  &.string, &.number, &.boolean, &.null {
-    color: $value-string-color;
-  }
-
-  &.array,
-  &.object {
-    color: $bracket-color;
-  }
 }
 
-.colon, .comma {
+.colon {
   color: $text-color;
+  margin-right: 4px;
+}
+
+.comma {
+  color: $text-color;
+  margin-left: 4px;
+}
+
+.bracket {
+  color: $bracket-color;
+  margin-right: 4px;
 }
 
 // Botões de Ação
@@ -238,7 +220,7 @@ $highlight-color: rgba(97, 175, 239, 0.2);
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  opacity: 0; // Inicia invisível
+  opacity: 0;
   transition: opacity 0.2s ease;
 
   button {
@@ -277,10 +259,18 @@ $highlight-color: rgba(97, 175, 239, 0.2);
   padding: 16px;
 
   h3 {
+    margin: 0 0 16px 0;
     color: $text-color;
+    font-size: 14px;
+    font-weight: 500;
   }
 
   pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
     color: $text-color;
   }
 }
@@ -304,7 +294,7 @@ $highlight-color: rgba(97, 175, 239, 0.2);
     }
 
     &:hover {
-      background: darken($bg-color, 5%);
+      background: rgba(0, 0, 0, 0.04);
 
       .mat-icon {
         color: $text-color;
@@ -320,7 +310,7 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 
 @keyframes highlight {
   0% { background-color: transparent; }
-  50% { background-color: rgba(97, 175, 239, 0.2); }
+  50% { background-color: $highlight-color; }
   100% { background-color: transparent; }
 }
 
@@ -335,7 +325,6 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 
   &-thumb {
     background: darken($border-color, 10%);
-
 
     &:hover {
       background: darken($border-color, 20%);

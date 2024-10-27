@@ -85,8 +85,8 @@ export class JsonTreeViewerService {
   formatValue(value: any): string {
     if (value === null) return 'null';
     if (typeof value === 'string') return `"${value}"`;
-    if (Array.isArray(value)) return '[]';
-    if (typeof value === 'object') return '{}';
+    if (Array.isArray(value)) return '';
+    if (typeof value === 'object') return '';
     return String(value);
   }
 
@@ -215,7 +215,7 @@ export class JsonTreeViewerService {
       : data;
   }
 
-  private generateUniqueKey(obj: DynamicObject, baseKey: string): string {
+  generateUniqueKey(obj: DynamicObject, baseKey: string): string {
     let key = baseKey;
     let counter = 1;
     while (obj[key] !== undefined) {

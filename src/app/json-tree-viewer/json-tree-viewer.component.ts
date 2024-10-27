@@ -52,6 +52,10 @@ export class JsonTreeViewerComponent implements OnInit {
     this.processNodes();
   }
 
+  validateJson() {
+    this.isValid = this.jsonService.validateJson(this.jsonData);
+  }
+
   processNodes() {
     this.renderNodes = this.jsonService.flattenJson(
       this.jsonData,
@@ -96,8 +100,21 @@ export class JsonTreeViewerComponent implements OnInit {
   }
 
   async addCopySimilarItem(node: JsonNodeMetadata) {
+    const parent = this.jsonService.getParentFromPath(this.jsonData, node.path);
+    const key = node.path[node.path.length - 1];
+
+    // Faz uma cópia profunda do valor atual
     const copy = JSON.parse(JSON.stringify(node.value));
-    await this.jsonService.addSimilarItem(this.jsonData, node.path, false, copy);
+
+    if (Array.isArray(parent)) {
+      // Se o pai for um array, adiciona a cópia no array
+      parent.push(copy);
+    } else if (typeof parent === 'object' && parent !== null) {
+      // Se o pai for um objeto, gera uma nova chave única
+      const newKey = this.jsonService.generateUniqueKey(parent, key.toString());
+      parent[newKey] = copy;
+    }
+
     this.processNodes();
   }
 
@@ -125,7 +142,7 @@ export class JsonTreeViewerComponent implements OnInit {
           action: () => this.addCopySimilarItem(node)
         }
       ];
-    } else if (typeof node.value === 'object' && node.value !== null) {
+    } else if (this.isObject(node.value)) {
       return [
         {
           label: 'Adicionar par chave:valor',
@@ -144,19 +161,6 @@ export class JsonTreeViewerComponent implements OnInit {
 
   isObject(value: any): boolean {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
-  }
-
-  isValidJsonKey(key: string): boolean {
-    return typeof key === 'string' && key.trim().length > 0;
-  }
-
-  isValidJsonValue(value: any): boolean {
-    return value === null ||
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'boolean' ||
-      Array.isArray(value) ||
-      (typeof value === 'object' && value !== null);
   }
 
   getValueType(value: any): string {
@@ -189,7 +193,6 @@ export class JsonTreeViewerComponent implements OnInit {
   }
 
   async editNode(node: JsonNodeMetadata) {
-    // Se o nó for um valor primitivo, abrimos o diálogo de primitivos
     if (typeof node.value !== 'object' || node.value === null) {
       const dialogRef = this.dialog.open(AddPrimitiveDialogComponent, {
         data: { value: node.value }
@@ -207,57 +210,38 @@ export class JsonTreeViewerComponent implements OnInit {
         }
       }
     } else {
-      // Se for um objeto ou array, editamos usando o serviço
       await this.jsonService.editItem(this.jsonData, node.path);
     }
     this.processNodes();
   }
 
-  /**
-   * Função para deletar um nó
-   */
   deleteNode(node: JsonNodeMetadata) {
     const parent = this.jsonService.getParentFromPath(this.jsonData, node.path);
     const key = node.path[node.path.length - 1];
 
     if (Array.isArray(parent)) {
-      // Se o pai for um array, usamos splice para manter a consistência dos índices
       const index = Number(key);
       parent.splice(index, 1);
-
-      // Após remover um elemento do array, precisamos reprocessar todos os nós
-      // para atualizar os índices corretamente
-      this.processNodes();
     } else if (parent && typeof parent === 'object') {
-      // Se o pai for um objeto, podemos simplesmente deletar a propriedade
       delete parent[key];
-      this.processNodes();
     }
+    this.processNodes();
   }
 
-  /**
-   * Função auxiliar para verificar se um nó pode ser editado
-   */
   canEditNode(node: JsonNodeMetadata): boolean {
     return node !== null && node !== undefined;
   }
 
-  /**
-   * Função auxiliar para verificar se um nó pode ser deletado
-   */
   canDeleteNode(node: JsonNodeMetadata): boolean {
-    // Não permitimos deletar o nó raiz
     if (node.path.length === 0) {
       return false;
     }
-
     const parent = this.jsonService.getParentFromPath(this.jsonData, node.path);
     return parent !== null && parent !== undefined;
   }
 
-  /**
-   * Função para buscar no JSON
-   */
+// ... (continuação do json-tree-viewer.component.ts)
+
   onSearch() {
     if (!this.searchQuery.trim()) {
       this.searchResults = [];
@@ -307,14 +291,10 @@ export class JsonTreeViewerComponent implements OnInit {
     this.processNodes();
   }
 
-  /**
-   * Função para copiar todo o JSON
-   */
   copyAll() {
     const formattedJson = JSON.stringify(this.jsonData, null, 2);
     navigator.clipboard.writeText(formattedJson).then(
       () => {
-        // Opcional: Adicionar feedback visual de sucesso
         console.log('JSON copiado com sucesso');
       },
       (err) => {
@@ -323,9 +303,6 @@ export class JsonTreeViewerComponent implements OnInit {
     );
   }
 
-  /**
-   * Funções auxiliares para verificar correspondências na busca
-   */
   isKeyMatched(node: JsonNodeMetadata): boolean {
     return this.searchResults.some(
       match => match.type === 'key' &&
@@ -345,70 +322,4 @@ export class JsonTreeViewerComponent implements OnInit {
       this.searchResults[this.currentSearchIndex]?.path.join('.') ===
       this.getNodePath(node);
   }
-
-  /**
-   * Função para validar o JSON
-   */
-  validateJson() {
-    try {
-      // Validação básica do JSON
-      JSON.parse(JSON.stringify(this.jsonData));
-      this.isValid = true;
-    } catch (error) {
-      this.isValid = false;
-      console.error('JSON inválido:', error);
-    }
-  }
-
-  copyToClipboard(value: string) {
-    navigator.clipboard.writeText(value).then(
-      () => {
-        // Opcional: Você pode adicionar algum feedback visual aqui
-        console.log('Valor copiado com sucesso:', value);
-      },
-      (err) => {
-        console.error('Erro ao copiar valor:', err);
-      }
-    );
-  }
-  /**
-   * Retorna o tamanho do objeto ou array
-   */
-  getCollectionSize(value: any): number {
-    if (Array.isArray(value)) {
-      return value.length;
-    }
-    if (this.isObject(value)) {
-      return Object.keys(value).length;
-    }
-    return 0;
-  }
-
-  /**
-   * Retorna a descrição do tipo com o tamanho
-   */
-  getTypeDescription(value: any): string {
-    if (Array.isArray(value)) {
-      return `Array[${value.length}]`;
-    }
-    if (this.isObject(value)) {
-      return `Object{${Object.keys(value).length}}`;
-    }
-    return '';
-  }
-
-  getNodeAttributes(node: JsonNodeMetadata) {
-    const isArray = Array.isArray(node.value);
-    const isObject = this.isObject(node.value);
-
-    return {
-      'data-level': node.level,
-      'data-array': isArray,
-      'data-object': isObject,
-      'data-bracket-open': isArray ? '[' : '{',
-      'data-bracket-close': isArray ? ']' : '}',
-      'class': this.isExpanded(this.getNodePath(node)) ? 'expanded' : ''
-    };
-  }
-
 }

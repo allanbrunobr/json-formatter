@@ -45,50 +45,41 @@
           <div
             class="tree-node"
             [attr.data-level]="node.level"
-            [attr.data-array]="Array.isArray(node.value)"
-            [style.margin-left.px]="node.level * 20"
-            [attr.data-object]="isObject(node.value)"
-            [attr.data-bracket-open]="Array.isArray(node.value) ? '[' : '{'"
-            [attr.data-bracket-close]="Array.isArray(node.value) ? ']' : '}'"
             [class.expanded]="isExpanded(getNodePath(node))"
             [class.highlighted]="isNodeHighlighted(node)"
             [attr.data-path]="getNodePath(node)"
           >
-            <div class="node-content">
-               <span
-                 class="key"
-                 *ngIf="node.key !== undefined"
-                 [class.matched]="isKeyMatched(node)"
-                 (click)="copyToClipboard(node.key.toString())"
-                 [attr.title]="'Clique para copiar: ' + node.key"
-               >
-            "{{ node.key }}"
-              </span>
+            <div class="node-content" [style.padding-left.px]="node.level * 20">
+              <!-- Chave e dois pontos -->
+              <ng-container *ngIf="node.key !== undefined">
+                <span class="key">"{{node.key}}"</span>
+                <span class="colon">: </span>
+              </ng-container>
 
-              <span class="colon" *ngIf="node.key !== undefined">: </span>
+              <!-- Conteúdo do nó -->
+              <ng-container *ngIf="isExpandable(node.value)">
+                <!-- Para arrays e objetos -->
+                <span class="bracket">{{ Array.isArray(node.value) ? '[' : '{' }}</span>
+                <div class="expand-container">
+                  <button
+                    class="expand-button"
+                    (click)="toggleNode(getNodePath(node))"
+                  >
+                    {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
+                  </button>
+                </div>
+              </ng-container>
 
-              <div class="expandable-value-container">
-
-              <span
-                *ngIf="isExpandable(node.value)"
-                class="expand-button"
-                (click)="toggleNode(getNodePath(node))"
-                [attr.title]="isExpanded(getNodePath(node)) ? 'Colapsar' : 'Expandir'"
-              >
-                {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
-              </span>
-
-                <span
-                  [class]="'value ' + getValueType(node.value)"
-                  [class.matched]="isValueMatched(node)"
-                  (click)="copyToClipboard(formatValue(node.value))"
-                  [attr.title]="'Clique para copiar: ' + formatValue(node.value)"
-                >
-                    {{ formatValue(node.value) }}
+              <!-- Para valores primitivos -->
+              <ng-container *ngIf="!isExpandable(node.value)">
+                <span [class]="'value ' + getValueType(node.value)">
+                  {{ formatValue(node.value) }}
                 </span>
-              </div>
+              </ng-container>
+
               <span *ngIf="!node.isLast" class="comma">,</span>
 
+              <!-- Botões de ação -->
               <div class="node-actions">
                 <button
                   class="action-button small"
@@ -146,13 +137,6 @@
                   🗑
                 </button>
               </div>
-            </div>
-
-            <!-- Indicador de tipo e tamanho (opcional) -->
-            <div class="type-indicator" *ngIf="isExpandable(node.value)">
-  <span class="type-badge">
-    {{ getTypeDescription(node.value) }}
-  </span>
             </div>
           </div>
         </ng-container>
