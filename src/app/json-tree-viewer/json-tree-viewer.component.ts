@@ -57,13 +57,22 @@ export class JsonTreeViewerComponent implements OnInit {
   }
 
   processNodes() {
+    // this.renderNodes = this.jsonService.flattenJson(
+    //   this.jsonData,
+    //   [],
+    //   0,
+    //   this.expandedNodes
+    // );
+    // this.updateClosingBrackets();
     this.renderNodes = this.jsonService.flattenJson(
       this.jsonData,
       [],
       0,
       this.expandedNodes
-    );
-    this.updateClosingBrackets();
+    ).map(node => ({
+      ...node,
+      needsClosing: this.isExpandable(node.value) && this.isExpanded(this.getNodePath(node))
+    }));
   }
 
   updateClosingBrackets() {
@@ -74,8 +83,23 @@ export class JsonTreeViewerComponent implements OnInit {
   }
 
   shouldShowClosingBracket(node: JsonNodeMetadata): boolean {
+    // return this.isExpandable(node.value) &&
+    //   this.isExpanded(this.getNodePath(node));
     return this.isExpandable(node.value) &&
-      this.isExpanded(this.getNodePath(node));
+      this.isExpanded(this.getNodePath(node)) &&
+      !this.isLastChild(node);
+  }
+
+  isLastChild(node: JsonNodeMetadata): boolean {
+    const parent = this.jsonService.getParentFromPath(this.jsonData, node.path);
+    if (!parent) return true;
+
+    const lastKey = node.path[node.path.length - 1];
+    if (Array.isArray(parent)) {
+      return parseInt(lastKey) === parent.length - 1;
+    }
+    const keys = Object.keys(parent);
+    return keys[keys.length - 1] === lastKey;
   }
 
   getNodePath(node: JsonNodeMetadata): string {

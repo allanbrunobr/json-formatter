@@ -115,7 +115,7 @@ $highlight-color: rgba(97, 175, 239, 0.2);
 
   .node-content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     min-height: 24px;
     padding: 2px 0;
   }
@@ -132,9 +132,26 @@ $highlight-color: rgba(97, 175, 239, 0.2);
   }
 }
 
+.node-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
 .tree-node-closing {
+  position: relative;
   padding: 2px 0;
   color: $bracket-color;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: -8px;
+    bottom: 8px;
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
 }
 
 // Botão Expandir/Colapsar

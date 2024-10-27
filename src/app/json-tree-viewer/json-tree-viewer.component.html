@@ -36,40 +36,36 @@
     <div class="editor-section">
       <div class="json-content">
         <ng-container *ngFor="let node of renderNodes">
-          <!-- Node Container -->
           <div
             class="tree-node"
             [attr.data-level]="node.level"
             [class.expanded]="isExpanded(getNodePath(node))"
             [attr.data-path]="getNodePath(node)"
           >
+            <!-- Node Content -->
             <div class="node-content" [style.padding-left.px]="node.level * 20">
-              <!-- Key and Colon -->
-              <ng-container *ngIf="node.key !== undefined">
-                <span class="key">"{{node.key}}"</span>
-                <span class="colon">: </span>
-              </ng-container>
-
-              <!-- Expandable Content -->
-              <div class="expandable-content">
-                <!-- Opening bracket -->
-                <span class="bracket opening">{{ Array.isArray(node.value) ? '[' : '{' }}</span>
-
-                <!-- Expand/Collapse button -->
-                <button
-                  *ngIf="isExpandable(node.value)"
-                  class="expand-button"
-                  (click)="toggleNode(getNodePath(node))"
-                >
-                  {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
-                </button>
-
-                <!-- If not expanded, show closing bracket -->
-                <ng-container *ngIf="!isExpanded(getNodePath(node)) && isExpandable(node.value)">
-                  <span class="bracket closing">{{ Array.isArray(node.value) ? ']' : '}' }}</span>
+              <div class="node-wrapper">
+                <!-- Key and Colon -->
+                <ng-container *ngIf="node.key !== undefined">
+                  <span class="key">"{{node.key}}"</span>
+                  <span class="colon">: </span>
                 </ng-container>
 
-                <!-- If not expandable, show value -->
+                <!-- Value or Expandable Structure -->
+                <ng-container *ngIf="isExpandable(node.value)">
+                  <span class="bracket opening">{{ Array.isArray(node.value) ? '[' : '{' }}</span>
+                  <button
+                    class="expand-button"
+                    (click)="toggleNode(getNodePath(node))"
+                  >
+                    {{ isExpanded(getNodePath(node)) ? '▼' : '▶' }}
+                  </button>
+                  <ng-container *ngIf="!isExpanded(getNodePath(node))">
+                    <span class="bracket closing">{{ Array.isArray(node.value) ? ']' : '}' }}</span>
+                  </ng-container>
+                </ng-container>
+
+                <!-- Primitive Value -->
                 <ng-container *ngIf="!isExpandable(node.value)">
                   <span [class]="'value ' + getValueType(node.value)">
                     {{ formatValue(node.value) }}
@@ -138,7 +134,7 @@
             </div>
           </div>
 
-          <!-- Closing bracket for expanded nodes -->
+          <!-- Closing Structure for Expanded Nodes -->
           <ng-container *ngIf="isExpandable(node.value) && isExpanded(getNodePath(node))">
             <div
               class="tree-node-closing"
