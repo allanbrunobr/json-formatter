@@ -1,14 +1,14 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
-import { JsonTreeViewerService } from './json-tree-viewer.service';
-import { SearchMatch, JsonNodeMetadata, JsonObject, JsonArray, JsonValue } from './json-tree-viewer.types';
-import { AddPrimitiveDialogComponent } from './add-primitive-dialog.component';
-import { AddKeyValueDialogComponent } from './add-key-value-dialog.component';
+import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {MatDialog} from '@angular/material/dialog';
+import {JsonTreeViewerService} from './json-tree-viewer.service';
+import {JsonArray, JsonNodeMetadata, JsonObject, JsonValue, SearchMatch} from './json-tree-viewer.types';
+import {AddPrimitiveDialogComponent} from './add-primitive-dialog.component';
+import {AddKeyValueDialogComponent} from './add-key-value-dialog.component';
 
 interface MenuOption {
   label: string;
@@ -63,6 +63,40 @@ export class JsonTreeViewerComponent implements OnInit {
       0,
       this.expandedNodes
     );
+    this.updateClosingBrackets();
+  }
+
+  updateClosingBrackets() {
+    this.renderNodes = this.renderNodes.map(node => ({
+      ...node,
+      hasClosingBracket: this.shouldShowClosingBracket(node)
+    }));
+  }
+
+  shouldShowClosingBracket(node: JsonNodeMetadata): boolean {
+    return this.isExpandable(node.value) &&
+      this.isExpanded(this.getNodePath(node));
+  }
+
+  getNodePath(node: JsonNodeMetadata): string {
+    return node.path.join('.');
+  }
+
+  isExpandable(value: any): boolean {
+    return value !== null && typeof value === 'object';
+  }
+
+  toggleNode(path: string) {
+    if (this.expandedNodes.has(path)) {
+      this.expandedNodes.delete(path);
+    } else {
+      this.expandedNodes.add(path);
+    }
+    this.processNodes();
+  }
+
+  isExpanded(path: string): boolean {
+    return this.expandedNodes.has(path);
   }
 
   async addArrayItem(node: JsonNodeMetadata, type: 'primitive' | 'object' | 'array') {
@@ -84,6 +118,7 @@ export class JsonTreeViewerComponent implements OnInit {
 
     if (newValue !== undefined) {
       array.push(newValue);
+      this.expandedNodes.add(this.getNodePath(node));
       this.processNodes();
     }
   }
@@ -95,6 +130,7 @@ export class JsonTreeViewerComponent implements OnInit {
     if (result) {
       const { key, value } = result;
       obj[key] = value;
+      this.expandedNodes.add(this.getNodePath(node));
       this.processNodes();
     }
   }
@@ -102,94 +138,17 @@ export class JsonTreeViewerComponent implements OnInit {
   async addCopySimilarItem(node: JsonNodeMetadata) {
     const parent = this.jsonService.getParentFromPath(this.jsonData, node.path);
     const key = node.path[node.path.length - 1];
-
-    // Faz uma cópia profunda do valor atual
     const copy = JSON.parse(JSON.stringify(node.value));
 
     if (Array.isArray(parent)) {
-      // Se o pai for um array, adiciona a cópia no array
       parent.push(copy);
     } else if (typeof parent === 'object' && parent !== null) {
-      // Se o pai for um objeto, gera uma nova chave única
       const newKey = this.jsonService.generateUniqueKey(parent, key.toString());
       parent[newKey] = copy;
     }
 
+    this.expandedNodes.add(this.getNodePath(node));
     this.processNodes();
-  }
-
-  getMenuOptions(node: JsonNodeMetadata): MenuOption[] {
-    if (Array.isArray(node.value)) {
-      return [
-        {
-          label: 'Adicionar valor primitivo',
-          icon: 'add_circle_outline',
-          action: () => this.addArrayItem(node, 'primitive')
-        },
-        {
-          label: 'Adicionar objeto',
-          icon: 'add_box',
-          action: () => this.addArrayItem(node, 'object')
-        },
-        {
-          label: 'Adicionar array',
-          icon: 'list',
-          action: () => this.addArrayItem(node, 'array')
-        },
-        {
-          label: 'Duplicar elemento',
-          icon: 'content_copy',
-          action: () => this.addCopySimilarItem(node)
-        }
-      ];
-    } else if (this.isObject(node.value)) {
-      return [
-        {
-          label: 'Adicionar par chave:valor',
-          icon: 'add_box',
-          action: () => this.addKeyValuePair(node)
-        },
-        {
-          label: 'Duplicar objeto',
-          icon: 'content_copy',
-          action: () => this.addCopySimilarItem(node)
-        }
-      ];
-    }
-    return [];
-  }
-
-  isObject(value: any): boolean {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-  }
-
-  getValueType(value: any): string {
-    return this.jsonService.getValueType(value);
-  }
-
-  formatValue(value: any): string {
-    return this.jsonService.formatValue(value);
-  }
-
-  isExpandable(value: any): boolean {
-    return value !== null && typeof value === 'object';
-  }
-
-  toggleNode(path: string) {
-    if (this.expandedNodes.has(path)) {
-      this.expandedNodes.delete(path);
-    } else {
-      this.expandedNodes.add(path);
-    }
-    this.processNodes();
-  }
-
-  isExpanded(path: string): boolean {
-    return this.expandedNodes.has(path);
-  }
-
-  getNodePath(node: JsonNodeMetadata): string {
-    return node.path.join('.');
   }
 
   async editNode(node: JsonNodeMetadata) {
@@ -220,8 +179,7 @@ export class JsonTreeViewerComponent implements OnInit {
     const key = node.path[node.path.length - 1];
 
     if (Array.isArray(parent)) {
-      const index = Number(key);
-      parent.splice(index, 1);
+      parent.splice(Number(key), 1);
     } else if (parent && typeof parent === 'object') {
       delete parent[key];
     }
@@ -233,14 +191,41 @@ export class JsonTreeViewerComponent implements OnInit {
   }
 
   canDeleteNode(node: JsonNodeMetadata): boolean {
-    if (node.path.length === 0) {
-      return false;
-    }
-    const parent = this.jsonService.getParentFromPath(this.jsonData, node.path);
-    return parent !== null && parent !== undefined;
+    if (node.path.length === 0) return false;
+    return this.jsonService.getParentFromPath(this.jsonData, node.path) !== null;
   }
 
-// ... (continuação do json-tree-viewer.component.ts)
+  getValueType(value: any): string {
+    return this.jsonService.getValueType(value);
+  }
+
+  formatValue(value: any, isLast: boolean = false): string {
+    return this.jsonService.formatValue(value);  // Remove a lógica de vírgulas
+  }
+
+  isObject(value: any): boolean {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  copyToClipboard(value: string) {
+    navigator.clipboard.writeText(value);
+  }
+
+  copyAll() {
+    navigator.clipboard.writeText(JSON.stringify(this.jsonData, null, 2));
+  }
+
+  expandAll() {
+    this.jsonService.collectPaths(this.jsonData).forEach(path => {
+      this.expandedNodes.add(path.join('.'));
+    });
+    this.processNodes();
+  }
+
+  collapseAll() {
+    this.expandedNodes.clear();
+    this.processNodes();
+  }
 
   onSearch() {
     if (!this.searchQuery.trim()) {
@@ -248,7 +233,6 @@ export class JsonTreeViewerComponent implements OnInit {
       this.currentSearchIndex = -1;
       return;
     }
-
     this.searchResults = this.jsonService.searchJson(this.jsonData, this.searchQuery);
     this.currentSearchIndex = this.searchResults.length > 0 ? 0 : -1;
     this.highlightCurrentMatch();
@@ -264,6 +248,7 @@ export class JsonTreeViewerComponent implements OnInit {
       const match = this.searchResults[this.currentSearchIndex];
       const path = match.path.join('.');
 
+      // Expande os nós até o resultado
       let currentPath: string[] = [];
       match.path.forEach(segment => {
         currentPath.push(segment);
@@ -272,54 +257,11 @@ export class JsonTreeViewerComponent implements OnInit {
 
       this.processNodes();
 
+      // Rola até o elemento
       setTimeout(() => {
         const element = document.querySelector(`[data-path="${path}"]`);
         element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     }
-  }
-
-  expandAll() {
-    this.jsonService.collectPaths(this.jsonData).forEach(path => {
-      this.expandedNodes.add(path.join('.'));
-    });
-    this.processNodes();
-  }
-
-  collapseAll() {
-    this.expandedNodes.clear();
-    this.processNodes();
-  }
-
-  copyAll() {
-    const formattedJson = JSON.stringify(this.jsonData, null, 2);
-    navigator.clipboard.writeText(formattedJson).then(
-      () => {
-        console.log('JSON copiado com sucesso');
-      },
-      (err) => {
-        console.error('Erro ao copiar JSON:', err);
-      }
-    );
-  }
-
-  isKeyMatched(node: JsonNodeMetadata): boolean {
-    return this.searchResults.some(
-      match => match.type === 'key' &&
-        match.path.join('.') === this.getNodePath(node)
-    );
-  }
-
-  isValueMatched(node: JsonNodeMetadata): boolean {
-    return this.searchResults.some(
-      match => match.type === 'value' &&
-        match.path.join('.') === this.getNodePath(node)
-    );
-  }
-
-  isNodeHighlighted(node: JsonNodeMetadata): boolean {
-    return this.currentSearchIndex >= 0 &&
-      this.searchResults[this.currentSearchIndex]?.path.join('.') ===
-      this.getNodePath(node);
   }
 }

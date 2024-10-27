@@ -1,22 +1,25 @@
 // Variáveis
-$bg-color: #ffffff;
-$dark-bg-lighter: #f8f9fa;
-$border-color: #e0e0e0;
-$text-color: #333333;
-$text-muted: #666666;
-$key-color: #986801;
-$bracket-color: #333333;
+$bg-color: #1e1e1e;
+$dark-bg-lighter: #252526;
+$border-color: #404040;
+$text-color: #d4d4d4;
+$text-muted: #808080;
+$key-color: #9cdcfe;
+$bracket-color: #808080;
+$value-string-color: #ce9178;
+$value-number-color: #b5cea8;
+$value-boolean-color: #569cd6;
+$value-null-color: #569cd6;
 $success-color: #28a745;
 $highlight-color: rgba(97, 175, 239, 0.2);
-$value-number-color: #8c8c8c;
-$value-boolean-color: #8c8c8c;
-$value-null-color: #8c8c8c;
-$value-string-color: #333333;
 
 // Container Principal
 .json-viewer-container {
   position: relative;
   background-color: $bg-color;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 // Toolbar
@@ -49,14 +52,14 @@ $value-string-color: #333333;
 // Botões
 .tool-button {
   padding: 4px 8px;
-  background: $bg-color;
+  background: #333;
   border: 1px solid $border-color;
   color: $text-color;
   border-radius: 3px;
   cursor: pointer;
 
   &:hover {
-    background: darken($bg-color, 5%);
+    background: #444;
   }
 }
 
@@ -69,7 +72,7 @@ $value-string-color: #333333;
 
 .search-input {
   padding: 4px 8px;
-  background: $bg-color;
+  background: #333;
   border: 1px solid $border-color;
   color: $text-color;
   border-radius: 3px;
@@ -88,7 +91,7 @@ $value-string-color: #333333;
 
   button {
     padding: 2px 6px;
-    background: #333333;
+    background: #333;
     border: 1px solid $border-color;
     color: $text-color;
     border-radius: 3px;
@@ -100,7 +103,7 @@ $value-string-color: #333333;
     }
 
     &:hover:not(:disabled) {
-      background: $border-color;
+      background: #444;
     }
   }
 }
@@ -108,8 +111,19 @@ $value-string-color: #333333;
 // Estrutura da Árvore JSON
 .tree-node {
   position: relative;
-  min-height: 24px;
   font-family: 'Consolas', 'Monaco', monospace;
+
+  .node-content {
+    display: flex;
+    align-items: flex-start;
+    min-height: 24px;
+    padding: 2px 0;
+  }
+
+  .expandable-content {
+    display: flex;
+    align-items: center;
+  }
 
   &:hover {
     .node-actions {
@@ -118,33 +132,26 @@ $value-string-color: #333333;
   }
 }
 
-.node-content {
-  display: flex;
-  align-items: center;
-  min-height: 24px;
-  gap: 4px;
+.tree-node-closing {
+  padding: 2px 0;
+  color: $bracket-color;
 }
 
-// Botão expandir/colapsar
-.expand-container {
-  display: inline-flex;
-  align-items: center;
-  margin: 0 4px;
-}
-
+// Botão Expandir/Colapsar
 .expand-button {
   background: #333;
   color: #fff;
   width: 16px;
   height: 16px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border: none;
-  cursor: pointer;
-  padding: 0;
   border-radius: 2px;
-  font-size: 12px;
+  cursor: pointer;
+  margin: 0 4px;
+  font-size: 10px;
+  padding: 0;
 
   &:hover {
     background: #444;
@@ -174,61 +181,53 @@ $value-string-color: #333333;
   }
 }
 
-.colon {
-  color: $text-color;
-  margin-right: 4px;
-}
-
-.comma {
-  color: $text-color;
-  margin-left: 4px;
-}
-
 .bracket {
   color: $bracket-color;
-  margin-right: 4px;
+
+  &.opening {
+    margin-right: 4px;
+  }
+
+  &.closing {
+    margin-left: 4px;
+  }
+}
+
+.colon {
+  color: $text-color;
+  margin: 0 4px;
 }
 
 // Botões de Ação
-.action-button.small {
-  padding: 1px 3px;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  background: transparent;
-  border: none;
-  color: $text-color;
-  cursor: pointer;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 3px;
-  }
-
-  &[matMenuTriggerFor] {
-    font-size: 16px;
-    font-weight: bold;
-  }
-}
-
 .node-actions {
-  margin-left: 8px;
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 2px;
   opacity: 0;
   transition: opacity 0.2s ease;
 
-  button {
-    opacity: 0.7;
-    transition: opacity 0.2s;
+  .action-button.small {
+    padding: 2px;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: none;
+    color: $text-color;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
 
     &:hover {
-      opacity: 1;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    &[matMenuTriggerFor] {
+      font-size: 14px;
+      font-weight: bold;
     }
   }
 }
@@ -246,16 +245,17 @@ $value-string-color: #333333;
   flex: 1;
   overflow: auto;
   background: $bg-color;
-  border-radius: 4px;
   border: 1px solid $border-color;
+  border-radius: 4px;
+  padding: 8px;
 }
 
 .preview-section {
   width: 400px;
   overflow: auto;
   background: $bg-color;
-  border-radius: 4px;
   border: 1px solid $border-color;
+  border-radius: 4px;
   padding: 16px;
 
   h3 {
@@ -288,13 +288,10 @@ $value-string-color: #333333;
     .mat-icon {
       color: $text-muted;
       margin-right: 8px;
-      font-size: 18px;
-      height: 18px;
-      width: 18px;
     }
 
     &:hover {
-      background: rgba(0, 0, 0, 0.04);
+      background: rgba(255, 255, 255, 0.1);
 
       .mat-icon {
         color: $text-color;
@@ -312,24 +309,6 @@ $value-string-color: #333333;
   0% { background-color: transparent; }
   50% { background-color: $highlight-color; }
   100% { background-color: transparent; }
-}
-
-// Scrollbar
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-
-  &-track {
-    background: $bg-color;
-  }
-
-  &-thumb {
-    background: darken($border-color, 10%);
-
-    &:hover {
-      background: darken($border-color, 20%);
-    }
-  }
 }
 
 // Responsividade
